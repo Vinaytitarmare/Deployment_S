@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+supabase
+google-generativeai
+requests
+beautifulsoup4
+websockets>=13.0
+mistralai
+firebase-admin

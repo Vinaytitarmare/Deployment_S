@@ -1,0 +1,91 @@
+# Backend Environment Variables
+
+# ============================================================================
+# REQUIRED - Core Services
+# ============================================================================
+
+# Supabase
+SUPABASE_URL=https://cibzuaobuoqoraebvtbn.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpYnp1YW9idW9xb3JhZWJ2dGJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MDc3MDMsImV4cCI6MjA3OTk4MzcwM30.TL3h242lc_v7QHCWr6NFkcOoY98pl7xeWzCIQhjhLKU
+
+# Google / Gemini
+GOOGLE_API_KEY=AIzaSyCQZiiQXGdJOuRlyocGrxBL5z4m6enQMXM
+
+# Firecrawl (Scraping)
+FIRECRAWL_API_KEY=fc-3a7327403e52411e9affcc4b300535d1
+
+# Mistral AI (Intelligence)
+MISTRAL_API_KEY=QKcuvZX5j4InXxiNg6r9mijPIMNlEt93
+
+# Firebase (Intelligence + Google App Creds)
+# Option 1: Local File (Keep this for local dev)
+GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json
+# Option 2: Cloud Deployment (Paste Base64 encoded JSON here)
+# Run `python gen_key.py` to generate this value.
+FIREBASE_SERVICE_ACCOUNT_BASE64=
+
+# ============================================================================
+# PHASE 1: Chunking Configuration
+# ============================================================================
+
+# Enable semantic chunking (true/false)
+SEMANTIC_CHUNKING_ENABLED=true
+
+# Chunk size parameters (characters)
+MIN_CHUNK_SIZE=200
+TARGET_CHUNK_SIZE=800
+MAX_CHUNK_SIZE=1200
+
+# Overlap between chunks (0.0 to 1.0)
+CHUNK_OVERLAP_PERCENTAGE=0.2
+
+# Preserve special content (true/false)
+PRESERVE_CODE_BLOCKS=true
+PRESERVE_TABLES=true
+EXTRACT_METADATA=true
+
+# ============================================================================
+# Embedding Configuration
+# ============================================================================
+
+# Embedding model
+EMBEDDING_MODEL=models/text-embedding-004
+
+# Parallel processing
+MAX_EMBEDDING_WORKERS=3
+EMBEDDING_BATCH_SIZE=10
+
+# ============================================================================
+# Search Configuration
+# ============================================================================
+
+# Vector search parameters
+MATCH_THRESHOLD=0.3
+MATCH_COUNT=10
+
+# Search mode: vector_only, hybrid, keyword_only
+SEARCH_MODE=vector_only
+
+# Hybrid search weights (if enabled)
+VECTOR_WEIGHT=0.7
+KEYWORD_WEIGHT=0.3
+
+# ============================================================================
+# Generation Configuration
+# ============================================================================
+
+# Generation model
+GENERATION_MODEL=mistral-small-latest
+
+# Generation parameters
+TEMPERATURE=0.7
+MAX_TOKENS=2000
+STREAMING_ENABLED=true
+
+# ============================================================================
+# Feature Flags (Gradual Rollout)
+# ============================================================================
+
+PHASE_1_ENABLED=true
+PHASE_2_ENABLED=false
+PHASE_3_ENABLED=false
