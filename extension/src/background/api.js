@@ -336,7 +336,13 @@ export const apiClient = {
      */
     async exportSite(siteUrl, format = 'json') {
         const encodedUrl = encodeURIComponent(siteUrl);
-        const url = `http://127.0.0.1:8000/export/${encodedUrl}?format=${format}`;
+        const getBackendUrl = () => new Promise(resolve => {
+            chrome.storage.local.get(['backendUrl'], (result) => {
+                 resolve(result.backendUrl || import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000");
+            });
+        });
+        const baseUrl = await getBackendUrl();
+        const url = `${baseUrl}/export/${encodedUrl}?format=${format}`;
 
         try {
             const response = await fetch(url);

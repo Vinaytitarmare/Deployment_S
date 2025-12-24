@@ -547,7 +547,10 @@ function App() {
         }
 
         // 3. Send to Intelligence Service
-        const res = await fetch('http://localhost:8000/receive_data', {
+        const getBackendUrl = () => new Promise(r => chrome.storage.local.get(['backendUrl'], res => r(res.backendUrl || import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000")));
+        const baseUrl = await getBackendUrl();
+
+        const res = await fetch(`${baseUrl}/receive_data`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -652,15 +655,28 @@ function App() {
         // Clear any failed action
         setLastFailedAction(null);
       } else {
-        // Store failed action for retry
-        setLastFailedAction({ type: 'ingest', url: tab.url });
-        toast.error(`❌ Indexing failed: ${response.error}`, {
-          id: toastId,
-          action: {
-            label: 'Retry',
-            onClick: () => handleIngest()
-          }
-        });
+        // Smart Handling for "Insufficient content"
+        if (response.error && (response.error.includes("Insufficient content") || response.error.includes("400"))) {
+             toast.warning("Protected/Empty Page Detected", {
+                id: toastId,
+                description: "Standard scraping failed. Try Visual Indexing?",
+                action: {
+                    label: "📸 Visual Scan",
+                    onClick: () => handleVisualIngest()
+                },
+                duration: 8000
+             });
+        } else {
+            // Store failed action for retry
+            setLastFailedAction({ type: 'ingest', url: tab.url });
+            toast.error(`❌ Indexing failed: ${response.error}`, {
+              id: toastId,
+              action: {
+                label: 'Retry',
+                onClick: () => handleIngest()
+              }
+            });
+        }
       }
     } catch (err) {
       console.error(err);

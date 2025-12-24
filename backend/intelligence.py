@@ -94,6 +94,7 @@ def initialize_firebase():
             
     except Exception as e:
         logger.error(f"❌ Failed to initialize Firebase: {e}")
+        print(f"CRITICAL FIREBASE ERROR: {e}") # Ensure it shows in Render logs
 
 initialize_firebase()
 
@@ -203,6 +204,11 @@ async def process_intelligence_data(url: Optional[str], text: Optional[str], tit
     logger.info("-----------------------------------------")
     logger.info(f"📥 Received Request. URL: {url or 'N/A'}")
 
+    # FORCE DB CHECK 
+    if not db:
+        logger.error("❌ CRITICAL: Attempting to process data but Database is not initialized.")
+        return {"success": False, "error": "Database Connection Failed. Check server logs."}
+
     if not url and not text:
          raise ValueError("Either URL or text content is required")
 
@@ -244,15 +250,11 @@ async def process_intelligence_data(url: Optional[str], text: Optional[str], tit
     }
 
     # Save
-    if db:
-        logger.info("💾 Saving to Firebase...")
-        try:
-            update_time, doc_ref = db.collection('memories').add(final_memory)
-            logger.info(f"✅ Saved. ID: {doc_ref.id}")
-            return {"success": True, "id": doc_ref.id, "memory": final_memory}
-        except Exception as db_err:
-             logger.error(f"❌ Save failed: {db_err}")
-             return {"success": True, "memory": final_memory, "warning": f"DB Error: {str(db_err)}"}
-    else:
-        logger.warning("⚠️ DB not initialized")
-        return {"success": True, "memory": final_memory, "warning": "DB Config missing"}
+    logger.info("💾 Saving to Firebase...")
+    try:
+        update_time, doc_ref = db.collection('memories').add(final_memory)
+        logger.info(f"✅ Saved. ID: {doc_ref.id}")
+        return {"success": True, "id": doc_ref.id, "memory": final_memory}
+    except Exception as db_err:
+            logger.error(f"❌ Save failed: {db_err}")
+            return {"success": False, "error": f"DB Write Error: {str(db_err)}"}

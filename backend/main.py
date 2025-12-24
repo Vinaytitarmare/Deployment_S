@@ -61,6 +61,7 @@ async def ingest_endpoint(request: IngestRequest):
         result = await ingest_website_logic(request.url)
     
     if not result["success"]:
+         print(f"❌ Ingest Failed: {result['message']}")
          raise HTTPException(status_code=400, detail=result["message"])
     
     return result

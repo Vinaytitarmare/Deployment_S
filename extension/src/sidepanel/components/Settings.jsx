@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Save, Key, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Key, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function Settings({ onBack }) {
     const [apiKey, setApiKey] = useState('AIzaSyAik8tzY5M4KFBbPuBaxTxvBGIPxJzhJZY');
-    const [backendUrl, setBackendUrl] = useState('http://127.0.0.1:8000');
+    const [backendUrl, setBackendUrl] = useState(import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000');
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {

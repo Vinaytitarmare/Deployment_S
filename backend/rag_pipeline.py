@@ -111,7 +111,7 @@ def embed_single_chunk(chunk: str) -> Tuple[str, List[float]]:
         else:
             return chunk, []
     except Exception as e:
-        print(f"Embedding error: {e}")
+        print(f"❌ Embedding single chunk error: {e}")
         return chunk, []
 
 async def parallel_embed_chunks(chunks: List[dict], max_workers: int = None, source_url: str = "") -> List[dict]:
