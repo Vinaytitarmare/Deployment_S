@@ -1311,6 +1311,31 @@ function App() {
             </button>
 
             <button
+              onClick={() => {
+                  const url = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:8080';
+                  window.open(url, '_blank');
+              }}
+              title="Open Dashboard"
+              style={{
+                padding: '6px',
+                borderRadius: 'var(--radius-md)',
+                transition: 'var(--transition-fast)',
+                color: 'var(--text-tertiary)',
+                background: 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--primary-50)';
+                e.currentTarget.style.color = 'var(--primary-600)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--text-tertiary)';
+              }}
+            >
+              <LayoutDashboard className="w-4 h-4" />
+            </button>
+
+            <button
               onClick={() => setView('history')}
               title="Conversation history"
               style={{
