@@ -25,6 +25,7 @@ export interface MemoryItem {
   embedding?: number[];
   tags?: string[];
   emotions?: string[];
+  created_at?: string; // Backend sync
 }
 
 export interface Preferences {

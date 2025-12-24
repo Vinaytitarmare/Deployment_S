@@ -1,12 +1,12 @@
 import { analyzeMemory } from "@/lib/ai";
 import type { MemoryItem, Preferences } from "@/types/memory";
 import {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 
 const STORAGE_KEY = "mnemo.memories.v1";
@@ -45,8 +45,8 @@ export function MemoryProvider({ children }: { children: React.ReactNode }) {
 
   // Subscribe to Firebase
   useEffect(() => {
-    const q = query(collection(db, "memories"), orderBy("created_at", "desc")); // Assuming created_at exists or use timestamp
-    const unsubscribe = onSnapshot(collection(db, "memories"), (snapshot) => {
+    const q = query(collection(db, "memories"), orderBy("created_at", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
         const fetched = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()

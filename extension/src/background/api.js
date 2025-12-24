@@ -8,6 +8,13 @@
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const DEFAULT_KEY = import.meta.env.VITE_GEMINI_API_KEY; // Managed via .env
 
+// Helper to get backend URL with priority: Storage > Env > Default
+const _getBackendUrl = () => new Promise(resolve => {
+    chrome.storage.local.get(['backendUrl'], (result) => {
+        resolve(result.backendUrl || import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000");
+    });
+});
+
 export const apiClient = {
     /**
      * Retrieves the API key from local storage or returns default.
@@ -23,20 +30,9 @@ export const apiClient = {
 
     /**
      * Sends an image to the backend for analysis or extraction.
-     * @param {string} base64Image - The base64 encoded image data.
-     * @param {string} prompt - The user prompt or instruction.
-     * @param {string} mode - "qa" or "extraction".
-     * @returns {Promise<Object>} The analysis result.
      */
     async analyzeImage(base64Image, prompt, mode = "qa") {
-        // Get Backend URL from storage
-        const getBackendUrl = () => new Promise(resolve => {
-            chrome.storage.local.get(['backendUrl'], (result) => {
-                resolve(result.backendUrl || import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000");
-            });
-        });
-
-        const baseUrl = await getBackendUrl();
+        const baseUrl = await _getBackendUrl();
 
         try {
             console.log(`[API] Sending image to ${baseUrl}/analyze-image (Mode: ${mode})...`);
@@ -75,22 +71,12 @@ export const apiClient = {
 
     /**
      * Simulates RAG query against indexed page content.
-     * (Keeping mock for RAG as we don't have a Vector DB setup in this Phase)
      */
     async queryRag(blocks, question) {
         console.log('[API] Sending RAG Query to Backend...', { count: blocks.length, question });
 
         const fullText = blocks.map(b => b.text).join('\n\n');
-
-        // Get Backend URL from storage
-        const getBackendUrl = () => new Promise(resolve => {
-            chrome.storage.local.get(['backendUrl'], (result) => {
-                // Default to 127.0.0.1 if not set
-                resolve(result.backendUrl || "http://127.0.0.1:8000");
-            });
-        });
-
-        const baseUrl = await getBackendUrl();
+        const baseUrl = await _getBackendUrl();
         const chatEndpoint = `${baseUrl}/chat`;
 
         try {
@@ -115,20 +101,16 @@ export const apiClient = {
             const data = await response.json();
 
             // Extract citations from the answer text
-            // Regex to find [bi-block-X]
             const citationRegex = /\[(bi-block-\d+)\]/g;
             const citations = [];
             let match;
 
-            // We can keep the tags in the text for context, or remove them. 
-            // For now, let's keep them but ensure the UI knows about them in the citations array.
             while ((match = citationRegex.exec(data.answer)) !== null) {
-                // Avoid duplicates
                 const blockId = match[1];
                 if (!citations.find(c => c.blockId === blockId)) {
                     citations.push({
                         blockId: blockId,
-                        snippet: `Source Reference ${blockId}` // We could look up snippet if we had map
+                        snippet: `Source Reference ${blockId}`
                     });
                 }
             }
@@ -140,7 +122,6 @@ export const apiClient = {
 
         } catch (error) {
             console.error("RAG Backend Error:", error);
-            // Check if it's a specific fetch error (Failed to fetch)
             const isNetworkError = error.message.includes("Failed to fetch") || error.message.includes("NetworkError");
 
             return {
@@ -151,16 +132,9 @@ export const apiClient = {
             };
         }
     },
-    async ingestPage(url, options = {}) {
-// Clean centralized URL logic
-        const getBackendUrl = () => new Promise(resolve => {
-            chrome.storage.local.get(['backendUrl'], (result) => {
-                // Priority: User Settings > Env Var > Default Localhost
-                resolve(result.backendUrl || import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000");
-            });
-        });
 
-        const baseUrl = await getBackendUrl();
+    async ingestPage(url, options = {}) {
+        const baseUrl = await _getBackendUrl();
         const ingestEndpoint = `${baseUrl}/ingest`;
 
         try {
@@ -195,23 +169,9 @@ export const apiClient = {
         }
     },
 
-    /**
-     * Ingests text content along with a URL to the backend.
-     * @param {string} url - The URL associated with the text content.
-     * @param {string} text - The text content to ingest.
-     * @returns {Promise<Object>} Ingestion result.
-     */
     async ingestText(url, text) {
-// Clean centralized URL logic
-        const getBackendUrl = () => new Promise(resolve => {
-            chrome.storage.local.get(['backendUrl'], (result) => {
-                // Priority: User Settings > Env Var > Default Localhost
-                resolve(result.backendUrl || import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000");
-            });
-        });
-
-        const baseUrl = await getBackendUrl();
-        const ingestEndpoint = `${baseUrl}/ingest`; // Assuming the same ingest endpoint handles text content
+        const baseUrl = await _getBackendUrl();
+        const ingestEndpoint = `${baseUrl}/ingest`;
 
         try {
             console.log(`[API] Ingesting text for ${url} to ${ingestEndpoint}...`);
@@ -242,17 +202,10 @@ export const apiClient = {
             };
         }
     },
-    /**
-     * Streams RAG query response using NDJSON.
-     * @param {Array} blocks - Content blocks.
-     * @param {string} question - User query.
-     * @param {function} onChunk - Callback(text) for each token.
-     * @returns {Promise<Object>} Final result/metadata.
-     */
+
     async streamQueryRag(blocks, question, onChunk, siteId = null, history = null) {
         console.log('[API] Stream RAG request...', siteId ? `(Site: ${siteId})` : '');
-        const getBackendUrl = () => new Promise(r => chrome.storage.local.get(['backendUrl'], res => r(res.backendUrl || "http://127.0.0.1:8000")));
-        const baseUrl = await getBackendUrl();
+        const baseUrl = await _getBackendUrl();
 
         try {
             const response = await fetch(`${baseUrl}/chat/stream`, {
@@ -263,7 +216,7 @@ export const apiClient = {
                     content_blocks: blocks,
                     page_content: blocks.map(b => b.text).join('\n\n'),
                     site_id: siteId,
-                    history: history // [NEW] Pass history
+                    history: history 
                 })
             });
 
@@ -302,10 +255,10 @@ export const apiClient = {
             return { success: false, error: e.message };
         }
     },
+
     // --- Phase 3: Site Management ---
     async getSites() {
-        const getBackendUrl = () => new Promise(r => chrome.storage.local.get(['backendUrl'], res => r(res.backendUrl || "http://127.0.0.1:8000")));
-        const baseUrl = await getBackendUrl();
+        const baseUrl = await _getBackendUrl();
         try {
             const response = await fetch(`${baseUrl}/sites`);
             if (!response.ok) throw new Error("Failed to fetch sites");
@@ -316,9 +269,9 @@ export const apiClient = {
             return [];
         }
     },
+
     async deleteSite(siteId) {
-        const getBackendUrl = () => new Promise(r => chrome.storage.local.get(['backendUrl'], res => r(res.backendUrl || "http://127.0.0.1:8000")));
-        const baseUrl = await getBackendUrl();
+        const baseUrl = await _getBackendUrl();
         try {
             const response = await fetch(`${baseUrl}/sites/${siteId}`, { method: 'DELETE' });
             if (!response.ok) throw new Error("Failed to delete site");
@@ -329,19 +282,9 @@ export const apiClient = {
         }
     },
 
-    /**
-     * Export site content
-     * @param {string} siteUrl - URL to export
-     * @param {string} format - 'json' or 'text'
-     */
     async exportSite(siteUrl, format = 'json') {
         const encodedUrl = encodeURIComponent(siteUrl);
-        const getBackendUrl = () => new Promise(resolve => {
-            chrome.storage.local.get(['backendUrl'], (result) => {
-                 resolve(result.backendUrl || import.meta.env.VITE_BACKEND_URL || "http://127.0.0.1:8000");
-            });
-        });
-        const baseUrl = await getBackendUrl();
+        const baseUrl = await _getBackendUrl();
         const url = `${baseUrl}/export/${encodedUrl}?format=${format}`;
 
         try {
