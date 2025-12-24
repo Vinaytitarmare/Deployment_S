@@ -2,7 +2,7 @@ import os
 import json
 import logging
 from typing import Optional, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 import requests
 from dotenv import load_dotenv
 
@@ -244,7 +244,7 @@ async def process_intelligence_data(url: Optional[str], text: Optional[str], tit
         "original_url": final_url,
         "firecrawl_metadata": "",
         "full_content": "", 
-        "created_at": datetime.now().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
         "type": derive_type_from_url(final_url),
         "favorite": False
     }

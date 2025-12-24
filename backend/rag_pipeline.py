@@ -59,7 +59,7 @@ def scrape_website_firecrawl(url: str, max_retries: int = 3) -> str:
                     "includeTags": ["p", "h1", "h2", "h3", "code", "pre"],
                     "excludeTags": ["nav", "header", "footer", "script"]
                 },
-                timeout=45
+                timeout=60
             )
             
             if response.status_code == 200:

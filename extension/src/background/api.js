@@ -162,7 +162,7 @@ export const apiClient = {
             console.error("Ingest Error:", error);
             return {
                 success: false,
-                message: error.message.includes("Failed to fetch")
+                error: error.message.includes("Failed to fetch")
                     ? `Cannot reach Backend at ${baseUrl}`
                     : error.message
             };
