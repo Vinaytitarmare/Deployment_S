@@ -1,6 +1,6 @@
 import * as HoverCard from '@radix-ui/react-hover-card';
 import 'highlight.js/styles/atom-one-dark.css';
-import { Bot, Crop, Database, FileText, Globe, History, Loader2, Send, User, X } from 'lucide-react';
+import { Bot, Crop, Database, FileText, Globe, History, LayoutDashboard, Loader2, Send, User, X } from 'lucide-react';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
@@ -1004,8 +1004,17 @@ function App() {
              <History className="w-3.5 h-3.5" /> History
            </button>
            <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-           <button onClick={() => chrome.tabs.create({ url: 'http://localhost:8080' })} className="hover:text-slate-600 transition-colors flex items-center gap-1.5">
-             <Database className="w-3.5 h-3.5" /> Dashboard
+           <button onClick={() => {
+               chrome.storage.local.get(['frontendUrl'], (result) => {
+                   let url = result.frontendUrl;
+                   const envUrl = import.meta.env.VITE_FRONTEND_URL;
+                   const norm = (u) => u ? u.replace(/\/$/, '') : '';
+                   if (!url || norm(url) === 'http://localhost:8080') url = envUrl;
+                   if (!url) url = 'http://localhost:8080'; // Final fallback
+                   window.open(url, '_blank');
+               });
+           }} className="hover:text-slate-600 transition-colors flex items-center gap-1.5">
+             <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
            </button>
         </div>
         <Toaster richColors position="top-center" />
@@ -1223,31 +1232,7 @@ function App() {
 
           {/* Right: Icon Navigation */}
           <div className="flex items-center gap-0.5 flex-shrink-0">
-            {/* [NEW] Dashboard Link */}
-            <button
-                onClick={() => chrome.tabs.create({ url: 'http://localhost:8080' })}
-                title="Open Dashboard"
-                style={{
-                    padding: '6px',
-                    borderRadius: 'var(--radius-md)',
-                    transition: 'var(--transition-fast)',
-                    color: 'var(--text-tertiary)',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--primary-50)';
-                    e.currentTarget.style.color = 'var(--primary-600)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--text-tertiary)';
-                }}
-            >
-                {/* External Link Icon */}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-            </button>
+            {/* [NEW] Smart Capture Button */ }
 
             {/* [NEW] Smart Capture Button */}
             <button
@@ -1312,8 +1297,25 @@ function App() {
 
             <button
               onClick={() => {
-                  const url = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:8080';
-                  window.open(url, '_blank');
+                  chrome.storage.local.get(['frontendUrl'], (result) => {
+                      let url = result.frontendUrl;
+                      const envUrl = import.meta.env.VITE_FRONTEND_URL;
+                      
+                      // Helper to normalize: remove trailing slash
+                      const norm = (u) => u ? u.replace(/\/$/, '') : '';
+
+                      // If storage is empty OR storage is the unwanted default (with or without slash), prefer Env Var
+                      if (!url || norm(url) === 'http://localhost:8080') {
+                          url = envUrl;
+                          // Optional: Update storage so it doesn't happen again
+                          if (url) chrome.storage.local.set({ frontendUrl: url });
+                      }
+                      
+                      // Final fallback
+                      if (!url) url = 'http://localhost:8080';
+
+                      window.open(url, '_blank');
+                  });
               }}
               title="Open Dashboard"
               style={{

@@ -1,20 +1,24 @@
-import { ArrowLeft, Key, Save } from 'lucide-react';
+import { ArrowLeft, Key, LayoutDashboard, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function Settings({ onBack }) {
     const [apiKey, setApiKey] = useState('AIzaSyAik8tzY5M4KFBbPuBaxTxvBGIPxJzhJZY');
     const [backendUrl, setBackendUrl] = useState(import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000');
+    const [frontendUrl, setFrontendUrl] = useState(import.meta.env.VITE_FRONTEND_URL || 'http://localhost:8080');
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
         // Load existing key
         if (chrome.storage && chrome.storage.local) {
-            chrome.storage.local.get(['geminiApiKey', 'backendUrl'], (result) => {
+            chrome.storage.local.get(['geminiApiKey', 'backendUrl', 'frontendUrl'], (result) => {
                 if (result.geminiApiKey) {
                     setApiKey(result.geminiApiKey);
                 }
                 if (result.backendUrl) {
                     setBackendUrl(result.backendUrl);
+                }
+                if (result.frontendUrl) {
+                    setFrontendUrl(result.frontendUrl);
                 }
             });
         }
@@ -24,7 +28,8 @@ export default function Settings({ onBack }) {
         if (chrome.storage && chrome.storage.local) {
             chrome.storage.local.set({
                 geminiApiKey: apiKey,
-                backendUrl: backendUrl.replace(/\/$/, '') // Remove trailing slash
+                backendUrl: backendUrl.replace(/\/$/, ''), // Remove trailing slash
+                frontendUrl: frontendUrl.replace(/\/$/, '')
             }, () => {
                 setSaved(true);
                 setTimeout(() => setSaved(false), 2000);
@@ -79,6 +84,24 @@ export default function Settings({ onBack }) {
                     />
                     <p className="text-xs text-gray-400">
                         Address of your local Python server (e.g. <code>http://127.0.0.1:8000</code>).
+                    </p>
+                </div>
+
+                {/* FRONTEND URL */}
+                <div className="space-y-2">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <LayoutDashboard className="w-3.5 h-3.5" />
+                        Dashboard URL
+                    </label>
+                    <input
+                        type="text"
+                        value={frontendUrl}
+                        onChange={(e) => setFrontendUrl(e.target.value)}
+                        placeholder="http://localhost:8080"
+                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono"
+                    />
+                    <p className="text-xs text-gray-400">
+                       Where your Web Dashboard is running. Use your Render URL for production.
                     </p>
                 </div>
 
