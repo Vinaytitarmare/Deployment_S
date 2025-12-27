@@ -2,7 +2,7 @@ import os
 import json
 import logging
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import requests
 from dotenv import load_dotenv
 
@@ -127,7 +127,7 @@ def scrape_with_firecrawl(url: str) -> Dict[str, Any]:
             json={
                 "url": url,
                 "formats": ['markdown'],
-                "onlyMainContent": True
+                "onlyMainContent": False
             },
             timeout=60
         )
@@ -151,7 +151,7 @@ def analyze_content_mistral(text: str) -> Dict[str, Any]:
     if not mistral_client:
         raise ValueError("Mistral Client not initialized")
 
-    todays_timestamp = datetime.now().isoformat()
+    todays_timestamp = datetime.now(timezone(timedelta(hours=5, minutes=30))).isoformat()
     system_prompt = f"""
         You are an expert data analysis engine. Analyze the text and extract specific info.
         Output MUST be valid JSON.
@@ -244,7 +244,7 @@ async def process_intelligence_data(url: Optional[str], text: Optional[str], tit
         "original_url": final_url,
         "firecrawl_metadata": "",
         "full_content": "", 
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(timezone(timedelta(hours=5, minutes=30))).isoformat(),
         "type": derive_type_from_url(final_url),
         "favorite": False
     }

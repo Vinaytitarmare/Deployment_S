@@ -294,7 +294,7 @@ def crawl_website_firecrawl(url: str, max_pages: int = 50, max_depth: int = 3) -
                 "maxDepth": effective_max_depth,
                 "scrapeOptions": {
                     "formats": ["markdown"],
-                    "onlyMainContent": True
+                    "onlyMainContent": False
                 }
             },
             timeout=60
